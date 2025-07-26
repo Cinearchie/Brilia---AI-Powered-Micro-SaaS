@@ -1,7 +1,8 @@
 "use client"
 
 import React, {useState, useEffect, useRef} from 'react'
-import { CldImage } from 'next-cloudinary';
+import { CldImage, getCldImageUrl } from 'next-cloudinary';
+import sharp from 'sharp'
 
 const socialFormats = {
   // Instagram
@@ -53,6 +54,8 @@ const socialFormats = {
 
   export default function SocialShare() {
     const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+    const [finalImage, setFinalImage] = useState<string | null>(null);
+    const [shadowedImage, setShadowedImage] = useState(null);
     const [selectedFormat, setSelectedFormat] = useState<SocialFormat>("Instagram Square (1:1)");
     const [isUploading, setIsUploading] = useState(false);
     const [isTransforming, setIsTransforming] = useState(false);
@@ -65,6 +68,45 @@ const socialFormats = {
         }
     }, [selectedFormat, uploadedImage])
 
+    useEffect(() => {
+      if (!uploadedImage) return;
+      const url = getCldImageUrl({
+        src: uploadedImage,
+        width: 960,
+        height: 600,
+        format: 'png',
+        removeBackground: true,
+        background: 'white',
+      })
+      setFinalImage(url)
+    }, [uploadedImage])
+
+    useEffect(() => {
+      const applyShadow = async () => {
+        if (!finalImage) return;
+    
+        try {
+          const response = await fetch("/api/add-shadow", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ imageUrl: finalImage })
+          });
+    
+          if (!response.ok) throw new Error("Shadow API failed");
+    
+          const data = await response.json();
+          setShadowedImage(data.finalImage);
+    
+        } catch (err) {
+          console.error("Error applying shadow:", err);
+        }
+      };
+    
+      applyShadow();
+    }, [finalImage]);
+    
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if(!file) return;
@@ -111,6 +153,17 @@ const socialFormats = {
             document.body.removeChild(link);
         })
     }
+
+    const url = uploadedImage
+  ? getCldImageUrl({
+      src: uploadedImage,
+      width: 960,
+      height: 600,
+      format: "png",
+      background: "white"
+    })
+  : "";
+
 
 
     return (
@@ -166,7 +219,7 @@ const socialFormats = {
                           <span className="loading loading-spinner loading-lg"></span>
                         </div>
                       )}
-                      <CldImage
+                      {/* <CldImage
                         width={socialFormats[selectedFormat].width}
                         height={socialFormats[selectedFormat].height}
                         src={uploadedImage}
@@ -177,7 +230,28 @@ const socialFormats = {
                         gravity='auto'
                         ref={imageRef}
                         onLoad={() => setIsTransforming(false)}
-                        />
+                        /> */}
+                      {/* <CldImage
+                        width="960"
+                        height="600"
+                        src={uploadedImage}
+                        sizes="100vw"
+                        removeBackground
+                        background="white"
+                        alt=""
+                        ref={imageRef}
+                        /> */}
+                        {shadowedImage && (
+  <CldImage
+    width="960"
+    height="600"
+    src={shadowedImage}
+    alt="Image with shadow"
+    sizes="100vw"
+    ref={imageRef}
+  />
+)}
+
                     </div>
                   </div>
 

@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         )
 
     } catch (error) {
-        console.log("UPload image failed", error)
+        console.log("Upload image failed", error)
         return NextResponse.json({error: "Upload image failed"}, {status: 500})
     }
 
