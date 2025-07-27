@@ -45,11 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }}
           />
 
-<<<<<<< HEAD
-=======
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 z-0 bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 opacity-40" />
->>>>>>> 87b9db0 (Initial Commit)
+
 
           {/* Foreground content */}
           <div className="relative z-10 w-full flex justify-center items-center">
