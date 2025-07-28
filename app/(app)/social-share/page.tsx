@@ -1,7 +1,8 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { CldImage, getCldImageUrl } from "next-cloudinary";
+import { ReactCompareSlider, ReactCompareSliderImage } from "react-compare-slider";
 
 const ecommerceFormats = {
   "Amazon Main Image": { width: 2000, height: 2000, aspectRatio: "1:1" },
@@ -18,7 +19,6 @@ const ecommerceFormats = {
   "Myntra Product Image": { width: 1500, height: 2000, aspectRatio: "3:4" },
   "Meesho Product Image": { width: 1024, height: 1365, aspectRatio: "3:4" },
 } as const;
-
 
 type FormatName = keyof typeof ecommerceFormats;
 
@@ -44,7 +44,7 @@ export default function SocialShare() {
       removeBackground: true,
       background: "white",
     });
-    
+
     setFinalImage(url);
     setIsTransforming(true);
   }, [uploadedImage, selectedFormat]);
@@ -111,84 +111,95 @@ export default function SocialShare() {
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">
-        Social Media Image Creator
+      <h1 className="text-6xl font-bold mb-6 text-center">
+        Look <span className="text-blue-400">pro</span>. Pay nothing
       </h1>
+      <p>
+        Remove backgrounds from product photos and make them marketplace-ready using AI — completely free. Brilia helps
+        you turn raw product shots into clean, professional visuals in seconds. No design skills needed.
+      </p>
 
-      <div className="card">
-        <div className="card-body">
-          <h2 className="card-title mb-4">Upload an Image</h2>
-          <input
-            type="file"
-            onChange={handleFileUpload}
-            className="file-input file-input-bordered file-input-primary w-full"
-          />
+      <div className="flex flex-col md:flex-row justify-center items-start gap-6 mt-8">
 
-          {isUploading && (
-            <div className="mt-4">
-              <progress className="progress progress-primary w-full"></progress>
-            </div>
-          )}
+  <div className="flex flex-col items-center justify-center border-2 border-dashed border-blue-400 rounded-2xl p-6 w-full md:w-1/2 h-[300px]">
+  
+  <ReactCompareSlider
+    itemOne={
+      <ReactCompareSliderImage
+        src="/sample-before.jpg"
+        alt="Before"
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    }
+    itemTwo={
+      <ReactCompareSliderImage
+        src="/sample-after.jpg"
+        alt="After"
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    }
+    className="w-full h-full"
+  />
+  </div>
 
-          {uploadedImage && (
-            <>
-              <h2 className="card-title mt-6 mb-4">Select Format</h2>
-              <select
-                className="select select-bordered w-full"
-                value={selectedFormat}
-                onChange={(e) => setSelectedFormat(e.target.value as FormatName)}
-              >
-                {Object.keys(ecommerceFormats).map((format) => (
-                  <option key={format} value={format}>
-                    {format}
-                  </option>
-                ))}
-              </select>
 
-              <div className="mt-6 relative">
-                <h3 className="text-lg font-semibold mb-2">Preview:</h3>
-                <div className="flex justify-center">
-                  {isTransforming && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-base-100 bg-opacity-50 z-10">
-                      <span className="loading loading-spinner loading-lg"></span>
-                    </div>
-                  )}
+  <div className="flex flex-col items-center justify-center border-2 border-dashed border-blue-400 rounded-2xl p-6 w-full md:w-1/2 h-[300px]">
+    <label
+      htmlFor="file-upload-2"
+      className="flex items-center justify-center bg-blue-400 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-full cursor-pointer text-lg"
+    >
+      + Upload image
+    </label>
+    <input id="file-upload-2" type="file" className="hidden" onChange={handleFileUpload} />
+    <p className="mt-2 text-gray-500">
+      or paste <span className="text-blue-300 underline cursor-pointer">URL</span>
+    </p>
+  </div>
+</div>
 
-                  {shadowedImage ? (
-                    <img
-                      src={shadowedImage}
-                      width={ecommerceFormats[selectedFormat].width}
-                      height={ecommerceFormats[selectedFormat].height}
-                      ref={imageRef}
-                      alt="Image with shadow"
-                      onLoad={() => setIsTransforming(false)}
-                    />
-                  ) : (
-                    <CldImage
-  src={uploadedImage}
-  width={ecommerceFormats[selectedFormat].width}
-  height={ecommerceFormats[selectedFormat].height}
-  crop="fill"
-  gravity="auto"
-  alt="transformed image"
-  ref={imageRef}
-  onLoad={() => setIsTransforming(false)}
-  sizes="100vw"
-/>
 
-                  )}
-                </div>
-              </div>
-
-              <div className="card-actions justify-end mt-6">
-                <button className="btn btn-primary" onClick={handleDownload}>
-                  Download for {selectedFormat}
-                </button>
-              </div>
-            </>
-          )}
+      {isUploading && (
+        <div className="mt-4">
+          <progress className="progress progress-primary w-full"></progress>
         </div>
-      </div>
+      )}
+
+      {uploadedImage && (
+        <>
+          <h2 className="card-title mt-6 mb-4">Select Format</h2>
+          <select
+            className="select select-bordered w-full"
+            value={selectedFormat}
+            onChange={(e) => setSelectedFormat(e.target.value as FormatName)}
+          >
+            {Object.keys(ecommerceFormats).map((format) => (
+              <option key={format} value={format}>
+                {format}
+              </option>
+            ))}
+          </select>
+
+          <div className="mt-6 relative">
+            <h3 className="text-lg font-semibold mb-2">Before vs After Preview:</h3>
+
+            {isTransforming && (
+              <div className="absolute inset-0 flex items-center justify-center bg-base-100 bg-opacity-50 z-10">
+                <span className="loading loading-spinner loading-lg"></span>
+              </div>
+            )}
+
+            <div className="aspect-square w-full max-w-2xl mx-auto rounded-xl overflow-hidden border shadow">
+              
+            </div>
+          </div>
+
+          <div className="card-actions justify-end mt-6">
+            <button className="btn btn-primary" onClick={handleDownload}>
+              Download for {selectedFormat}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
