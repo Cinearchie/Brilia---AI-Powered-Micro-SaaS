@@ -1,269 +1,194 @@
 "use client"
 
-import React, {useState, useEffect, useRef} from 'react'
-import { CldImage, getCldImageUrl } from 'next-cloudinary';
-import sharp from 'sharp'
+import React, { useState, useEffect, useRef } from "react";
+import { CldImage, getCldImageUrl } from "next-cloudinary";
 
-const socialFormats = {
-  // Instagram
-  "Instagram Square (1:1)": { width: 1080, height: 1080, aspectRatio: "1:1" },
-  "Instagram Portrait (4:5)": { width: 1080, height: 1350, aspectRatio: "4:5" },
-  "Instagram Landscape (1.91:1)": { width: 1080, height: 566, aspectRatio: "1.91:1" },
-  "Instagram Story / Reel (9:16)": { width: 1080, height: 1920, aspectRatio: "9:16" },
-
-  // Facebook
-  "Facebook Post (1.91:1)": { width: 1200, height: 628, aspectRatio: "1.91:1" },
-  "Facebook Square (1:1)": { width: 1080, height: 1080, aspectRatio: "1:1" },
-  "Facebook Story (9:16)": { width: 1080, height: 1920, aspectRatio: "9:16" },
-  "Facebook Cover Photo (820:312)": { width: 820, height: 312, aspectRatio: "205:78" },
-
-  // Twitter / X
-  "Twitter Post (16:9)": { width: 1600, height: 900, aspectRatio: "16:9" },
-  "Twitter Square (1:1)": { width: 1080, height: 1080, aspectRatio: "1:1" },
-  "Twitter Header (1500x500)": { width: 1500, height: 500, aspectRatio: "3:1" },
-
-  // LinkedIn
-  "LinkedIn Post (1.91:1)": { width: 1200, height: 627, aspectRatio: "1.91:1" },
-  "LinkedIn Square (1:1)": { width: 1080, height: 1080, aspectRatio: "1:1" },
-  "LinkedIn Story (9:16)": { width: 1080, height: 1920, aspectRatio: "9:16" },
-  "LinkedIn Banner (1584x396)": { width: 1584, height: 396, aspectRatio: "4:1" },
-
-  // YouTube
-  "YouTube Thumbnail (16:9)": { width: 1280, height: 720, aspectRatio: "16:9" },
-  "YouTube Shorts (9:16)": { width: 1080, height: 1920, aspectRatio: "9:16" },
-
-  // TikTok
-  "TikTok Video (9:16)": { width: 1080, height: 1920, aspectRatio: "9:16" },
-
-  // Pinterest
-  "Pinterest Pin (2:3)": { width: 1000, height: 1500, aspectRatio: "2:3" },
-  "Pinterest Square (1:1)": { width: 1000, height: 1000, aspectRatio: "1:1" },
-
-  // Snapchat
-  "Snapchat Story (9:16)": { width: 1080, height: 1920, aspectRatio: "9:16" },
-
-  // Threads (Meta)
-  "Threads Post (1:1)": { width: 1080, height: 1080, aspectRatio: "1:1" },
-  "Threads Portrait (4:5)": { width: 1080, height: 1350, aspectRatio: "4:5" },
-
-  // WhatsApp
-  "WhatsApp Status (9:16)": { width: 1080, height: 1920, aspectRatio: "9:16" },
-};
-
-  type SocialFormat = keyof typeof socialFormats;
-
-  export default function SocialShare() {
-    const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-    const [finalImage, setFinalImage] = useState<string | null>(null);
-    const [shadowedImage, setShadowedImage] = useState(null);
-    const [selectedFormat, setSelectedFormat] = useState<SocialFormat>("Instagram Square (1:1)");
-    const [isUploading, setIsUploading] = useState(false);
-    const [isTransforming, setIsTransforming] = useState(false);
-    const imageRef = useRef<HTMLImageElement>(null);
+const ecommerceFormats = {
+  "Amazon Main Image": { width: 2000, height: 2000, aspectRatio: "1:1" },
+  "Amazon Lifestyle Image": { width: 2000, height: 1600, aspectRatio: "5:4" },
+  "Flipkart Product Image": { width: 1080, height: 1080, aspectRatio: "1:1" },
+  "Flipkart Banner Image": { width: 1920, height: 500, aspectRatio: "192:50" },
+  "Shopify Square Image": { width: 2048, height: 2048, aspectRatio: "1:1" },
+  "Shopify Product Banner": { width: 2048, height: 1024, aspectRatio: "2:1" },
+  "eBay Main Image": { width: 1600, height: 1600, aspectRatio: "1:1" },
+  "eBay Gallery Image": { width: 800, height: 800, aspectRatio: "1:1" },
+  "Etsy Listing Image": { width: 2000, height: 2000, aspectRatio: "1:1" },
+  "Etsy Thumbnail": { width: 570, height: 456, aspectRatio: "5:4" },
+  "Walmart Main Image": { width: 2000, height: 2000, aspectRatio: "1:1" },
+  "Myntra Product Image": { width: 1500, height: 2000, aspectRatio: "3:4" },
+  "Meesho Product Image": { width: 1024, height: 1365, aspectRatio: "3:4" },
+} as const;
 
 
-    useEffect(() => {
-        if(uploadedImage){
-            setIsTransforming(true);
-        }
-    }, [selectedFormat, uploadedImage])
+type FormatName = keyof typeof ecommerceFormats;
 
-    useEffect(() => {
-      if (!uploadedImage) return;
-      const url = getCldImageUrl({
-        src: uploadedImage,
-        width: 960,
-        height: 600,
-        format: 'png',
-        removeBackground: true,
-        background: 'white',
-      })
-      setFinalImage(url)
-    }, [uploadedImage])
+export default function SocialShare() {
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [finalImage, setFinalImage] = useState<string | null>(null);
+  const [shadowedImage, setShadowedImage] = useState<string | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<FormatName>("Amazon Main Image");
+  const [isUploading, setIsUploading] = useState(false);
+  const [isTransforming, setIsTransforming] = useState(false);
+  const imageRef = useRef<HTMLImageElement | null>(null);
 
-    useEffect(() => {
-      const applyShadow = async () => {
-        if (!finalImage) return;
-    
-        try {
-          const response = await fetch("/api/add-shadow", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ imageUrl: finalImage })
-          });
-    
-          if (!response.ok) throw new Error("Shadow API failed");
-    
-          const data = await response.json();
-          setShadowedImage(data.finalImage);
-    
-        } catch (err) {
-          console.error("Error applying shadow:", err);
-        }
-      };
-    
-      applyShadow();
-    }, [finalImage]);
-    
-    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if(!file) return;
-        setIsUploading(true);
-        const formData = new FormData();
-        formData.append("file", file);
-
-        try {
-            const response = await fetch("/api/image-upload", {
-                method: "POST",
-                body: formData
-            })
-
-            if(!response.ok) throw new Error("Failed to upload image");
-
-            const data = await response.json();
-            setUploadedImage(data.publicId);
-
-
-        } catch (error) {
-            console.log(error)
-            alert("Failed to upload image");
-        } finally{
-            setIsUploading(false);
-        }
-    };
-
-    const handleDownload = () => {
-        if(!imageRef.current) return;
-
-        fetch(imageRef.current.src)
-        .then((response) => response.blob())
-        .then((blob) => {
-            const url = window.URL.createObjectURL(blob)
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `${selectedFormat
-          .replace(/\s+/g, "_")
-          .toLowerCase()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(link);
-        })
-    }
-
-    const url = uploadedImage
-  ? getCldImageUrl({
+  useEffect(() => {
+    if (!uploadedImage) return;
+    const { width, height } = ecommerceFormats[selectedFormat];
+    const url = getCldImageUrl({
       src: uploadedImage,
-      width: 960,
-      height: 600,
+      width,
+      height,
+      crop: "fill",
+      gravity: "auto",
       format: "png",
-      background: "white"
-    })
-  : "";
+      removeBackground: true,
+      background: "white",
+    });
+    
+    setFinalImage(url);
+    setIsTransforming(true);
+  }, [uploadedImage, selectedFormat]);
 
+  useEffect(() => {
+    if (!finalImage) return;
+    const applyShadow = async () => {
+      try {
+        const response = await fetch("/api/add-shadow", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl: finalImage }),
+        });
+        if (!response.ok) throw new Error("Shadow API failed");
+        const data = await response.json();
+        setShadowedImage(data.finalImage);
+      } catch (err) {
+        console.error("Error applying shadow:", err);
+      } finally {
+        setIsTransforming(false);
+      }
+    };
+    applyShadow();
+  }, [finalImage]);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
 
-    return (
-        <div className="container mx-auto p-4 max-w-4xl">
-          <h1 className="text-3xl font-bold mb-6 text-center">
-            Social Media Image Creator
-          </h1>
+    try {
+      const response = await fetch("/api/image-upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) throw new Error("Failed to upload image");
+      const data = await response.json();
+      setUploadedImage(data.publicId);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to upload image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
-          <div className="card">
-            <div className="card-body">
-              <h2 className="card-title mb-4">Upload an Image</h2>
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Choose an image file</span>
-                </label>
-                <input
-                  type="file"
-                  onChange={handleFileUpload}
-                  className="file-input file-input-bordered file-input-primary w-full"
-                />
+  const handleDownload = () => {
+    if (!imageRef.current) return;
+    fetch(imageRef.current.src)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${selectedFormat.replace(/\s+/g, "_").toLowerCase()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+  };
+
+  return (
+    <div className="container mx-auto p-4 max-w-4xl">
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        Social Media Image Creator
+      </h1>
+
+      <div className="card">
+        <div className="card-body">
+          <h2 className="card-title mb-4">Upload an Image</h2>
+          <input
+            type="file"
+            onChange={handleFileUpload}
+            className="file-input file-input-bordered file-input-primary w-full"
+          />
+
+          {isUploading && (
+            <div className="mt-4">
+              <progress className="progress progress-primary w-full"></progress>
+            </div>
+          )}
+
+          {uploadedImage && (
+            <>
+              <h2 className="card-title mt-6 mb-4">Select Format</h2>
+              <select
+                className="select select-bordered w-full"
+                value={selectedFormat}
+                onChange={(e) => setSelectedFormat(e.target.value as FormatName)}
+              >
+                {Object.keys(ecommerceFormats).map((format) => (
+                  <option key={format} value={format}>
+                    {format}
+                  </option>
+                ))}
+              </select>
+
+              <div className="mt-6 relative">
+                <h3 className="text-lg font-semibold mb-2">Preview:</h3>
+                <div className="flex justify-center">
+                  {isTransforming && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-base-100 bg-opacity-50 z-10">
+                      <span className="loading loading-spinner loading-lg"></span>
+                    </div>
+                  )}
+
+                  {shadowedImage ? (
+                    <img
+                      src={shadowedImage}
+                      width={ecommerceFormats[selectedFormat].width}
+                      height={ecommerceFormats[selectedFormat].height}
+                      ref={imageRef}
+                      alt="Image with shadow"
+                      onLoad={() => setIsTransforming(false)}
+                    />
+                  ) : (
+                    <CldImage
+  src={uploadedImage}
+  width={ecommerceFormats[selectedFormat].width}
+  height={ecommerceFormats[selectedFormat].height}
+  crop="fill"
+  gravity="auto"
+  alt="transformed image"
+  ref={imageRef}
+  onLoad={() => setIsTransforming(false)}
+  sizes="100vw"
+/>
+
+                  )}
+                </div>
               </div>
 
-              {isUploading && (
-                <div className="mt-4">
-                  <progress className="progress progress-primary w-full"></progress>
-                </div>
-              )}
-
-              {uploadedImage && (
-                <div className="mt-6">
-                  <h2 className="card-title mb-4">Select Social Media Format</h2>
-                  <div className="form-control">
-                    <select
-                      className="select select-bordered w-full"
-                      value={selectedFormat}
-                      onChange={(e) =>
-                        setSelectedFormat(e.target.value as SocialFormat)
-                      }
-                    >
-                      {Object.keys(socialFormats).map((format) => (
-                        <option key={format} value={format}>
-                          {format}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="mt-6 relative">
-                    <h3 className="text-lg font-semibold mb-2">Preview:</h3>
-                    <div className="flex justify-center">
-                      {isTransforming && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-base-100 bg-opacity-50 z-10">
-                          <span className="loading loading-spinner loading-lg"></span>
-                        </div>
-                      )}
-                      {/* <CldImage
-                        width={socialFormats[selectedFormat].width}
-                        height={socialFormats[selectedFormat].height}
-                        src={uploadedImage}
-                        sizes="100vw"
-                        alt="transformed image"
-                        crop="fill"
-                        aspectRatio={socialFormats[selectedFormat].aspectRatio}
-                        gravity='auto'
-                        ref={imageRef}
-                        onLoad={() => setIsTransforming(false)}
-                        /> */}
-                      {/* <CldImage
-                        width="960"
-                        height="600"
-                        src={uploadedImage}
-                        sizes="100vw"
-                        removeBackground
-                        background="white"
-                        alt=""
-                        ref={imageRef}
-                        /> */}
-                        {shadowedImage && (
-  <CldImage
-    width="960"
-    height="600"
-    src={shadowedImage}
-    alt="Image with shadow"
-    sizes="100vw"
-    ref={imageRef}
-  />
-)}
-
-                    </div>
-                  </div>
-
-                  <div className="card-actions justify-end mt-6">
-                    <button className="btn btn-primary" onClick={handleDownload}>
-                      Download for {selectedFormat}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+              <div className="card-actions justify-end mt-6">
+                <button className="btn btn-primary" onClick={handleDownload}>
+                  Download for {selectedFormat}
+                </button>
+              </div>
+            </>
+          )}
         </div>
-      );
+      </div>
+    </div>
+  );
 }
