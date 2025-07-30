@@ -49,18 +49,37 @@ export default function AppLayout({
   <Image src="/logo.jpg" alt="Logo" width={40} height={40} />
   <p className="font-bold text-gray-700 ml-2 text-4xl mt-1">Brilia</p>
 </NavbarBrand>
-    <NavbarContent justify="end">
+<NavbarContent justify="end">
+  {!user ? (
+    <>
       <NavbarItem className="hidden lg:flex">
-        <Link className="text-gray-500 hover:text-black" href="#">
+        <Link className="text-gray-500 hover:text-black" href="/sign-in">
           Login
         </Link>
       </NavbarItem>
       <NavbarItem>
-      <Link className="text-gray-700 hover:text-black" href="#">
+        <Link className="text-gray-700 hover:text-black" href="/sign-up">
           Sign Up
         </Link>
       </NavbarItem>
-    </NavbarContent>
+    </>
+  ) : (
+    <>
+      <NavbarItem className="hidden lg:flex">
+        <p className="text-gray-600 mr-4">Hi, {user.firstName}</p>
+      </NavbarItem>
+      <NavbarItem>
+        <button
+          onClick={handleSignOut}
+          className="text-gray-700 hover:text-black"
+        >
+          Sign Out
+        </button>
+      </NavbarItem>
+    </>
+  )}
+</NavbarContent>
+
   </Navbar>
 </header>
         <main className="flex-grow">
