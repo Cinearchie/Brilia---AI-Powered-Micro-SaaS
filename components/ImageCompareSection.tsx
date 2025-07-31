@@ -127,7 +127,6 @@ export default function SocialShare() {
               itemTwo={<img src="/sample-after.jpg" alt="After" className="w-full h-full object-cover" />}
             />
           </div>
-          <p className="text-sm text-center text-muted mt-2">Before & After comparison</p>
         </div>
 
         {/* Right: Upload + Transform */}
@@ -135,7 +134,7 @@ export default function SocialShare() {
           <div className="flex flex-col items-center justify-center border-2 border-dashed border-purple-400 rounded-2xl p-6 w-full h-[300px]">
             <label
               htmlFor="file-upload"
-              className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-full cursor-pointer text-lg"
+              className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-full cursor-pointer text-lg"
             >
               + Upload image
             </label>
