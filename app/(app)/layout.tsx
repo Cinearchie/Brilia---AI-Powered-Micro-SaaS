@@ -71,6 +71,7 @@ export default function AppLayout({
       <NavbarItem>
         <button
           onClick={handleSignOut}
+          
           className="text-gray-700 hover:text-black"
         >
           Sign Out
