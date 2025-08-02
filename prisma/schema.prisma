@@ -13,14 +13,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Video {
-  id String @id @default(cuid())
-  title String
-  description String?
-  publicId String
-  originalSize String
-  compressedSize String
-  duration Float
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  coins     Int      @default(100)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }

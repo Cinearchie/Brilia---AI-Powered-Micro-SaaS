@@ -18,75 +18,63 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No image URL provided' }, { status: 400 });
     }
 
-    // Fetch and prepare the image
     const res = await fetch(imageUrl);
     const buffer = Buffer.from(await res.arrayBuffer());
-    
-    // Get metadata first to understand the image
-    const metadata = await sharp(buffer).metadata();
+    const original = sharp(buffer).ensureAlpha();
+
+    const metadata = await original.metadata();
     const width = metadata.width ?? 600;
     const height = metadata.height ?? 600;
-    const hasAlpha = metadata.hasAlpha;
 
     const offsetX = 20;
     const offsetY = 20;
     const blurRadius = 15;
 
-    // Step 1: Create a mask 
-    let shadowMask: Buffer;
-    
-    if (hasAlpha) {
-      shadowMask = await sharp(buffer)
-        .extractChannel(3) // Alpha channel
-        .toColourspace('b-w')
-        .blur(blurRadius)
-        .toBuffer();
-    } else {
-
-      shadowMask = await sharp(buffer)
-        .flatten({ background: '#000000' }) // Convert to black
-        .toColourspace('b-w')
-        .blur(blurRadius)
-        .toBuffer();
-    }
-
-    // Step 2: Create the shadow 
-    const shadowLayer = await sharp(shadowMask)
-      .composite([{
-        input: Buffer.from([0, 0, 0, 128]), // Black with 50% opacity
-        raw: { width: 1, height: 1, channels: 4 },
-        tile: true,
-        blend: 'dest-in'
-      }])
+    // Step 1: Get alpha channel and blur it (shape of shadow)
+    const alphaChannel = await original
+      .clone()
+      .extractChannel('alpha')
+      .toColourspace('b-w') // grayscale
+      .blur(blurRadius)
       .toBuffer();
 
-    // Step 3: Create final composition
+    // Step 2: Color the blurred alpha with black
+    const blackShadow = await sharp({
+      create: {
+        width,
+        height,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      },
+    })
+      .composite([
+        {
+          input: alphaChannel,
+          blend: 'dest-in',
+        },
+      ])
+      .png()
+      .toBuffer();
+
+    // Step 3: Create a white canvas, place shadow & image
     const finalBuffer = await sharp({
       create: {
         width: width + offsetX,
         height: height + offsetY,
         channels: 4,
-        background: { r: 255, g: 255, b: 255, alpha: 1 }, // white background
+        background: { r: 255, g: 255, b: 255, alpha: 1 },
       },
     })
       .composite([
-        {
-          input: shadowLayer,
-          top: offsetY,
-          left: offsetX,
-        },
-        {
-          input: buffer, // Original image
-          top: 0,
-          left: 0,
-        },
+        { input: blackShadow, top: offsetY, left: offsetX }, // shadow
+        { input: await original.png().toBuffer(), top: 0, left: 0 }, // main image
       ])
       .png()
       .toBuffer();
 
     // Step 4: Upload to Cloudinary
     const uploadResult = await new Promise<any>((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
+      cloudinary.uploader.upload_stream(
         {
           resource_type: 'image',
           public_id: `shadowed_${nanoid()}`,
@@ -97,28 +85,13 @@ export async function POST(req: NextRequest) {
           if (err) reject(err);
           else resolve(result);
         }
-      );
-      uploadStream.end(finalBuffer);
+      ).end(finalBuffer);
     });
 
-    return NextResponse.json({ 
-      finalImage: uploadResult.secure_url,
-      imageInfo: {
-        originalWidth: width,
-        originalHeight: height,
-        hadAlphaChannel: hasAlpha
-      }
-    });
+    return NextResponse.json({ finalImage: uploadResult.secure_url });
 
   } catch (error) {
     console.error('Shadow API Error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Shadow generation failed',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        suggestion: 'Please ensure the image URL is valid and accessible'
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Shadow generation failed' }, { status: 500 });
   }
 }

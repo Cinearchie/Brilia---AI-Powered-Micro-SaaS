@@ -1,39 +1,45 @@
-import { clerkMiddleware , createRouteMatcher} from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
-    '/sign-in',
-    'sign-up',
-    '/',
-    '/home',
-])
-const isPublicApiRoute = createRouteMatcher([
-    '/api/videos'
-])
-export default clerkMiddleware(async (auth , req) => {
-    const {userId} = await auth();
-    const currentUrl = new URL(req.url);
-    const isHomePage = currentUrl.pathname === '/home';
-    const isApiRequest = currentUrl.pathname.startsWith('/api')
+  "/",
+  "/home",
+  "/sign-in",
+  "/sign-up",
+]);
 
-    if(userId && isPublicRoute(req) && !isHomePage){
-        return NextResponse.redirect(new URL('/home' , req.url))
+const isPublicApiRoute = createRouteMatcher([
+  "/api/videos", // Only this API is public
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  const { userId } = await auth();
+  const pathname = new URL(req.url).pathname;
+  const isApiRequest = pathname.startsWith("/api");
+  const isHomePage = pathname === "/home";
+
+  // 🔐 If user is signed in and visits a public auth route (except home), redirect to /home
+  if (userId && isPublicRoute(req) && !isHomePage) {
+    return NextResponse.redirect(new URL("/home", req.url));
+  }
+
+  // 🔒 If not signed in and trying to access a private route
+  if (!userId) {
+    const tryingToAccessPrivatePage = !isPublicRoute(req) && !isApiRequest;
+    const tryingToAccessPrivateApi = isApiRequest && !isPublicApiRoute(req);
+
+    if (tryingToAccessPrivatePage || tryingToAccessPrivateApi) {
+      return NextResponse.redirect(new URL("/sign-in", req.url));
     }
-    if(!userId){
-        if(!isPublicRoute(req) && isPublicApiRoute(req)){
-            return NextResponse.redirect(new URL('/sign-up',req.url))
-        }
-        if(!isApiRequest && isPublicApiRoute(req)){
-            return NextResponse.redirect(new URL('/sign-in',req.url))
-        }
-    }
-    return NextResponse.next();
+  }
+
+  return NextResponse.next();
 });
+
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
+    // Match all non-static routes and all API routes
+    "/((?!_next|.*\\..*).*)",
+    "/(api|trpc)(.*)",
   ],
 };

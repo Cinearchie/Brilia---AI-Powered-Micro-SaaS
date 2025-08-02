@@ -40,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div
             className="absolute inset-0 z-0 bg-cover bg-center"
             style={{
-              backgroundImage: "url('/abstract-textured-background.jpg')", // ✅ Correct usage
+              backgroundImage: "url('/abstract-textured-background.jpg')",
               filter: 'brightness(0.6)',
             }}
           />

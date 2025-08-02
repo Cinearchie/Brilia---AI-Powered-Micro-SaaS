@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CldImage, getCldImageUrl } from "next-cloudinary";
 import { ReactCompareSlider, ReactCompareSliderImage } from "react-compare-slider";
+import { useUser } from "@clerk/nextjs";
 
 const ecommerceFormats = {
   "Amazon Main Image": { width: 2000, height: 2000, aspectRatio: "1:1" },
@@ -30,7 +31,8 @@ export default function SocialShare() {
   const [isUploading, setIsUploading] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
   const imageRef = useRef<HTMLImageElement | null>(null);
-
+  const {user} = useUser();
+  
   useEffect(() => {
     if (!uploadedImage) return;
     const { width, height } = ecommerceFormats[selectedFormat];
@@ -56,7 +58,7 @@ export default function SocialShare() {
         const response = await fetch("/api/add-shadow", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageUrl: finalImage }),
+          body: JSON.stringify({ imageUrl: finalImage , userId : user?.id}),
         });
         if (!response.ok) throw new Error("Shadow API failed");
         const data = await response.json();
@@ -180,17 +182,24 @@ export default function SocialShare() {
           </select>
 
           <div className="mt-6 relative">
-            <h3 className="text-lg font-semibold mb-2">Before vs After Preview:</h3>
-
             {isTransforming && (
               <div className="absolute inset-0 flex items-center justify-center bg-base-100 bg-opacity-50 z-10">
                 <span className="loading loading-spinner loading-lg"></span>
               </div>
             )}
 
-            <div className="aspect-square w-full max-w-2xl mx-auto rounded-xl overflow-hidden border shadow">
-              
-            </div>
+          <div className="aspect-square w-full max-w-2xl mx-auto rounded-xl overflow-hidden border shadow">
+              {shadowedImage ? (
+                    <img
+                        ref={imageRef}
+                        src={shadowedImage}
+                        alt="Final image"
+                        className="w-full h-full object-cover"
+                      />) : (
+              <p className="text-center p-10 text-gray-400">Image will appear here after processing...</p>
+             )}
+</div>
+
           </div>
 
           <div className="card-actions justify-end mt-6">
