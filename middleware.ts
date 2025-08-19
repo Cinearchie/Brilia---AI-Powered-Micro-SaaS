@@ -20,7 +20,7 @@ export default clerkMiddleware(async (auth, req) => {
 
   // 🔐 If user is signed in and visits a public auth route (except home), redirect to /home
   if (userId && isPublicRoute(req) && !isHomePage) {
-    return NextResponse.redirect(new URL("/home", req.url));
+    return NextResponse.redirect(new URL("/social-share", req.url));
   }
 
   // 🔒 If not signed in and trying to access a private route

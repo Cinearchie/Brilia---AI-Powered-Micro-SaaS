@@ -17,6 +17,7 @@ function MyApp({ pageProps }: AppProps) {
             },
           },
         }}
+        
       />
     </ClerkProvider>
   )
