@@ -13,17 +13,17 @@ import {
 } from "@heroui/react";
 
 function EnsurePrismaUser() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
 
   useEffect(() => {
-    if (user) {
+    if (isLoaded && user) {
       fetch("/api/create-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clerkId: user.id }),
-      });
+      }).catch(console.error);
     }
-  }, [user]);
+  }, [isLoaded, user]);
 
   return null;
 }
@@ -33,23 +33,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useClerk();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
 
   useEffect(() => {
-    if (user) {
+    if (isLoaded && user) {
       const fetchCoins = () => {
-        fetch("/api/coin-add")
-          .then((res) => res.json())
-          .then((data) => setCoins(data.coins));
+        fetch("/api/coin-add", { method: "GET" })
+          .then((res) => {
+            if (!res.ok) throw new Error(`Error ${res.status}`);
+            return res.json();
+          })
+          .then((data) => setCoins(data.coins ?? 0))
+          .catch(console.error);
       };
-  
+
       fetchCoins(); // initial fetch
       const interval = setInterval(fetchCoins, 3000); // refresh every 3s
-  
+
       return () => clearInterval(interval);
     }
-  }, [user]);
-  
+  }, [isLoaded, user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -58,14 +61,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="drawer-content flex flex-col">
       <EnsurePrismaUser />
-      <header className="fixed top-0 left-0 w-full z-60">
+      <header className="fixed top-0 left-0 w-full z-50">
         <Navbar shouldHideOnScroll className="bg-white text-gray-800 px-6 pt-2">
           <NavbarBrand>
             <Image src="/logo.jpg" alt="Logo" width={40} height={40} />
             <p className="font-bold text-gray-700 ml-2 text-4xl mt-1">Brilia</p>
           </NavbarBrand>
           <NavbarContent justify="end">
-            {!user ? (
+            {!isLoaded ? (
+              <NavbarItem>
+                <p className="text-gray-500">Loading...</p>
+              </NavbarItem>
+            ) : !user ? (
               <>
                 <NavbarItem className="hidden lg:flex">
                   <Link className="text-gray-500 hover:text-black" href="/sign-in">
